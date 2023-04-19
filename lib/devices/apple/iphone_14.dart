@@ -3,8 +3,9 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:windows_border_test/devices/device_info.dart';
+import 'package:windows_border_test/src/devices/device_info.dart';
 
 final iPhone14 = DeviceInfo(
   screenDiagonalInches: 6.1,
@@ -21,7 +22,8 @@ final iPhone14 = DeviceInfo(
   ),
   frame: DeviceFrame(
     size: _sizeWithBorder,
-    builder: (context, child) => _FrameWidget(
+    builder: (context, child, overlayStyle) => _FrameWidget(
+      overlayStyle: overlayStyle,
       child: child,
     ),
   ),
@@ -48,16 +50,20 @@ const _notchSize = Size(484 / 3, 101 / 3);
 
 class _FrameWidget extends StatelessWidget {
   const _FrameWidget({
+    required this.overlayStyle,
     required this.child,
   });
 
+  final SystemUiOverlayStyle overlayStyle;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: _FramePainter(),
-      foregroundPainter: _ForegroundFramePainter(),
+      foregroundPainter: _ForegroundFramePainter(
+        overlayStyle: overlayStyle,
+      ),
       child: Center(
         child: ClipRRect(
           borderRadius: const BorderRadius.all(_radius),
@@ -168,6 +174,10 @@ class _FramePainter extends CustomPainter {
 }
 
 class _ForegroundFramePainter extends CustomPainter {
+  _ForegroundFramePainter({required this.overlayStyle});
+
+  final SystemUiOverlayStyle overlayStyle;
+
   @override
   void paint(Canvas canvas, Size size) {
     _drawNotch(canvas, size);
@@ -182,9 +192,17 @@ class _ForegroundFramePainter extends CustomPainter {
     _drawBottomBar(canvas, size);
   }
 
+  Color get statusBarIconColor {
+    if (overlayStyle.statusBarIconBrightness == Brightness.dark) {
+      return Colors.black;
+    }
+
+    return Colors.white;
+  }
+
   void _drawTime(Canvas canvas, Size size) {
     final timePainter = TextPainter(
-      text: const TextSpan(
+      text: TextSpan(
         text: '10:28',
         style: TextStyle(
           fontFamily: 'SF Pro',
@@ -192,7 +210,7 @@ class _ForegroundFramePainter extends CustomPainter {
           fontSize: 15.0,
           letterSpacing: 0.5,
           height: 1.0,
-          color: Colors.white,
+          color: statusBarIconColor,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -220,7 +238,7 @@ class _ForegroundFramePainter extends CustomPainter {
 
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect, radius),
-        Paint()..color = Colors.white.withOpacity(0.2),
+        Paint()..color = statusBarIconColor.withOpacity(0.2),
       );
     }
   }
@@ -236,7 +254,7 @@ class _ForegroundFramePainter extends CustomPainter {
           fontFamily: icon.fontFamily,
           fontSize: 17,
           height: 0.85,
-          color: Colors.white,
+          color: statusBarIconColor,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -262,7 +280,7 @@ class _ForegroundFramePainter extends CustomPainter {
           fontFamily: icon.fontFamily,
           fontSize: 25,
           height: 0.8,
-          color: Colors.white.withOpacity(0.4),
+          color: statusBarIconColor.withOpacity(0.4),
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -275,7 +293,7 @@ class _ForegroundFramePainter extends CustomPainter {
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(innerRect, const Radius.circular(3 / 3)),
-      Paint()..color = Colors.white,
+      Paint()..color = statusBarIconColor,
     );
 
     iconPainter.paint(canvas, const Offset(1097, 112) / 3);
@@ -352,5 +370,6 @@ class _ForegroundFramePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(_ForegroundFramePainter oldDelegate) =>
+      oldDelegate.overlayStyle != overlayStyle;
 }

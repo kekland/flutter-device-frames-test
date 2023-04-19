@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class DeviceInfo {
@@ -23,6 +24,7 @@ class DeviceInfo {
 typedef DeviceFrameBuilder = Widget Function(
   BuildContext context,
   Widget screenChild,
+  SystemUiOverlayStyle systemUiOverlayStyle,
 );
 
 class DeviceFrame {

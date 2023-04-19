@@ -1,6 +1,10 @@
+// ignore_for_file: invalid_use_of_protected_member
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:windows_border_test/devices/device_info.dart';
+import 'package:windows_border_test/devices/apple/iphone_14.dart';
+import 'package:windows_border_test/src/devices/device_info.dart';
 
 class DeviceFrameWidget extends StatefulWidget {
   const DeviceFrameWidget({
@@ -20,6 +24,7 @@ class _DeviceFrameWidgetState extends State<DeviceFrameWidget>
     with WidgetsBindingObserver {
   final _repaintBoundaryKey = GlobalKey();
   late MediaQueryData _mediaQuery;
+  var _systemUiOverlayStyle = SystemUiOverlayStyle.light;
 
   @override
   void initState() {
@@ -27,6 +32,26 @@ class _DeviceFrameWidgetState extends State<DeviceFrameWidget>
 
     _mediaQuery = MediaQueryData.fromWindow(WidgetsBinding.instance.window);
     WidgetsBinding.instance.addObserver(this);
+
+    DeviceFrameWidgetBinding.instance!.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      SystemChannels.platform,
+      (message) {
+        if (message.method == 'SystemChrome.setSystemUIOverlayStyle') {
+          final data = message.arguments as Map<String, dynamic>;
+          _systemUiOverlayStyle = fromJson(data);
+
+          setState(() {});
+        }
+
+        return DeviceFrameWidgetBinding
+            .instance!.defaultBinaryMessenger.delegate
+            .send(
+          SystemChannels.platform.name,
+          message,
+        );
+      },
+    );
   }
 
   @override
@@ -69,7 +94,7 @@ class _DeviceFrameWidgetState extends State<DeviceFrameWidget>
       child: SizedBox(
         width: frameInfo.size.width,
         height: frameInfo.size.height,
-        child: frameInfo.builder(context, child),
+        child: frameInfo.builder(context, child, _systemUiOverlayStyle),
       ),
     );
   }

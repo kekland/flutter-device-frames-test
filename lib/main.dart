@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:windows_border_test/builder.dart';
 import 'package:windows_border_test/devices/apple/iphone_14.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  runApp(const MyApp());
+  runDeviceFrameApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -12,19 +13,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DeviceFrameWidget(
-      deviceInfo: iPhone14,
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        useInheritedMediaQuery: true,
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        darkTheme: ThemeData.dark(),
-        themeMode: ThemeMode.light,
-        home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return MaterialApp(
+      title: 'Flutter Demo',
+      useInheritedMediaQuery: true,
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.yellow,
       ),
+      darkTheme: ThemeData.dark(),
+      themeMode: ThemeMode.dark,
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -44,7 +42,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _incrementCounter() {
     setState(() {
       _counter++;
-      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+
+      if (_counter % 2 == 0) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      } else {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      }
     });
   }
 
